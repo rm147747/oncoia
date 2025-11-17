@@ -3,6 +3,7 @@ Cliente para Anthropic Claude API
 """
 import anthropic
 from config.settings import ANTHROPIC_API_KEY, DEFAULT_MODEL, MAX_TOKENS, TEMPERATURE
+from config.prompts import TUMOR_BOARD_PROMPT, COMPUTATIONAL_ONCOLOGY_PROMPT
 import json
 import streamlit as st
 
@@ -20,11 +21,6 @@ class ClaudeClient:
         prompt = f"""Você é um assistente médico oncológico especializado.
 
 Extraia dados estruturados deste prontuário em formato JSON.
-
-INSTRUÇÕES:
-1. Extraia APENAS informações presentes no texto
-2. Use null para dados não encontrados
-3. Seja preciso com números e unidades
 
 FORMATO DE SAÍDA (JSON):
 {{
@@ -89,4 +85,50 @@ Retorne APENAS JSON válido."""
             return None
         except Exception as e:
             st.error(f"Erro na API: {e}")
+            return None
+    
+    def tumor_board_discussion(self, prontuario: str, dados_estruturados: dict) -> str:
+        """
+        Realiza discussão de caso em formato Tumor Board
+        """
+        prompt = TUMOR_BOARD_PROMPT.format(
+            prontuario=prontuario,
+            dados_estruturados=json.dumps(dados_estruturados, indent=2, ensure_ascii=False)
+        )
+        
+        try:
+            message = self.client.messages.create(
+                model=self.model,
+                max_tokens=8000,  # Mais tokens para análise completa
+                temperature=0.3,   # Pouco mais criativo que extração
+                messages=[{"role": "user", "content": prompt}]
+            )
+            
+            return message.content[0].text
+        
+        except Exception as e:
+            st.error(f"Erro na discussão do Tumor Board: {e}")
+            return None
+    
+    def computational_analysis(self, prontuario: str, dados_estruturados: dict) -> str:
+        """
+        Realiza análise de oncologia computacional
+        """
+        prompt = COMPUTATIONAL_ONCOLOGY_PROMPT.format(
+            prontuario=prontuario,
+            dados_estruturados=json.dumps(dados_estruturados, indent=2, ensure_ascii=False)
+        )
+        
+        try:
+            message = self.client.messages.create(
+                model=self.model,
+                max_tokens=8000,
+                temperature=0.2,  # Mais rigor científico
+                messages=[{"role": "user", "content": prompt}]
+            )
+            
+            return message.content[0].text
+        
+        except Exception as e:
+            st.error(f"Erro na análise computacional: {e}")
             return None
