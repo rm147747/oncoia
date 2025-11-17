@@ -3,6 +3,7 @@ Configurações globais do OncoIA
 """
 import os
 from pathlib import Path
+import streamlit as st
 
 # Paths
 BASE_DIR = Path(__file__).parent.parent
@@ -10,7 +11,11 @@ DATA_DIR = BASE_DIR / "data"
 STUDIES_DIR = DATA_DIR / "studies"
 
 # API Configuration
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+# Tenta pegar do Streamlit Secrets primeiro, depois de variável de ambiente
+try:
+    ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
+except (KeyError, FileNotFoundError):
+    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 # Model settings
 DEFAULT_MODEL = "claude-sonnet-4-20250514"
@@ -22,4 +27,4 @@ APP_VERSION = "1.0.0"
 APP_NAME = "OncoIA Clinical Copilot"
 DEVELOPER_NAME = "Dr. Raphael Brandão"
 DEVELOPER_CRM = "CRM 147.757-SP"
-INSTITUTION = "Harvard/Dana-Farber Cancer Institute"
+INSTITUTION = "First Oncologia"
