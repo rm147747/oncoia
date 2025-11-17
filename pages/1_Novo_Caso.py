@@ -93,6 +93,7 @@ if extract_button:
             # Salvar em session state PRIMEIRO
             st.session_state['extracted_data'] = extracted_data
             st.session_state['prontuario_original'] = prontuario
+            st.rerun()
             
         except Exception as e:
             st.error(f"❌ Erro durante extração: {str(e)}")
