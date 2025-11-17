@@ -8,7 +8,7 @@ Sistema de suporte à decisão clínica em oncologia com análise dual: **Tumor 
 
 **Dr. Raphael Brandão**  
 CRM 147.757-SP  
-First Oncologia - São Paulo
+First Oncologia - SP
 ---
 
 ## ✨ Features Principais
