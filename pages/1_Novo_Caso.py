@@ -68,8 +68,6 @@ if extract_button:
                 st.error("❌ Falha na extração. Tente novamente.")
                 st.stop()
             
-            st.success("✅ Dados extraídos com sucesso!")
-            
             # Calcular métricas adicionais
             demo = extracted_data.get("patient_demographics", {})
             
@@ -90,7 +88,7 @@ if extract_button:
                 )
                 labs["crcl_ml_min"] = crcl
             
-            # Salvar em session state PRIMEIRO
+            # Salvar em session state
             st.session_state['extracted_data'] = extracted_data
             st.session_state['prontuario_original'] = prontuario
             st.rerun()
@@ -99,14 +97,15 @@ if extract_button:
             st.error(f"❌ Erro durante extração: {str(e)}")
             with st.expander("Ver detalhes do erro"):
                 st.exception(e)
-            st.stop()
 
 # ==========================================
-# MOSTRAR DADOS SE JÁ FORAM EXTRAÍDOS
+# MOSTRAR DADOS EXTRAÍDOS E BOTÕES
 # ==========================================
 if 'extracted_data' in st.session_state:
     extracted_data = st.session_state['extracted_data']
     demo = extracted_data.get("patient_demographics", {})
+    
+    st.success("✅ Dados extraídos com sucesso!")
     
     st.subheader("📊 Dados Estruturados")
     
@@ -146,3 +145,113 @@ if 'extracted_data' in st.session_state:
     if ps and ps.get('ecog') is not None:
         with st.expander("💪 Performance Status"):
             st.metric("ECOG", ps.get('ecog'))
+    
+    # Laboratório
+    labs = extracted_data.get("laboratory", {})
+    if labs and any(labs.values()):
+        with st.expander("🧪 Laboratório"):
+            col1, col2, col3, col4 = st.columns(4)
+            if labs.get('hemoglobin'):
+                col1.metric("Hb", f"{labs['hemoglobin']} g/dL")
+            if labs.get('wbc'):
+                col2.metric("Leuco", f"{labs['wbc']} /mm³")
+            if labs.get('creatinine'):
+                col3.metric("Creat", f"{labs['creatinine']} mg/dL")
+            if labs.get('crcl_ml_min'):
+                col4.metric("CrCl", f"{labs['crcl_ml_min']} mL/min")
+    
+    # Confiança
+    st.divider()
+    conf = extracted_data.get("extraction_confidence", 0)
+    if conf >= 80:
+        st.success(f"🎯 Confiança da extração: **{conf}%**")
+    elif conf >= 60:
+        st.warning(f"⚠️ Confiança da extração: **{conf}%**")
+    else:
+        st.error(f"❌ Confiança da extração: **{conf}%** (revisar)")
+    
+    # JSON completo
+    with st.expander("🔍 Ver JSON completo"):
+        st.json(extracted_data)
+    
+    # ==========================================
+    # BOTÕES DE NAVEGAÇÃO
+    # ==========================================
+    
+    st.divider()
+    st.subheader("🎯 Próxima Etapa: Escolha o Tipo de Análise")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); 
+                   padding: 1.5rem; border-radius: 10px; color: white; height: 200px;">
+            <h3>🏥 Tumor Board</h3>
+            <p><strong>Discussão Clínica Prática</strong></p>
+            <ul style="font-size: 0.9rem;">
+                <li>Guidelines (NCCN, ESMO, ASCO)</li>
+                <li>Tomada de decisão terapêutica</li>
+                <li>Discussão multidisciplinar</li>
+                <li>Considerações práticas</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("🏥 Discutir em Tumor Board", 
+                   type="primary", 
+                   use_container_width=True,
+                   key="tumor_board"):
+            st.switch_page("pages/2_Tumor_Board.py")
+    
+    with col2:
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%); 
+                   padding: 1.5rem; border-radius: 10px; color: white; height: 200px;">
+            <h3>🔬 Oncologia Computacional</h3>
+            <p><strong>Análise Multi-Ômica Profunda</strong></p>
+            <ul style="font-size: 0.9rem;">
+                <li>Análise bioinformática avançada</li>
+                <li>Integração multi-ômica</li>
+                <li>Hipóteses científicas</li>
+                <li>Potencial de publicação</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("🔬 Análise Computacional", 
+                   use_container_width=True,
+                   key="comp_onco"):
+            st.switch_page("pages/3_Analise_Computacional.py")
+    
+    st.info("💡 **Dica:** Você pode fazer ambas as análises. Cada uma oferece perspectivas complementares.")
+    
+    # Botão para novo caso
+    st.divider()
+    if st.button("🆕 Analisar Novo Caso"):
+        del st.session_state['extracted_data']
+        del st.session_state['prontuario_original']
+        st.rerun()
+
+# Exemplo
+st.divider()
+with st.expander("📄 Ver exemplo de prontuário"):
+    st.code("""Paciente feminina, 62 anos, ex-tabagista (40 maços-ano).
+Peso: 68kg, Altura: 165cm.
+
+DIAGNÓSTICO: Adenocarcinoma pulmonar, lobo superior direito
+Data: 15/03/2024
+Estadiamento TNM8: T2bN3M1b (Stage IV)
+
+BIOMARCADORES (01/04/2024):
+- PD-L1 (22C3): TPS 85%
+- EGFR: wild-type
+- ALK: negativo
+- TMB: 12 mut/Mb
+
+PERFORMANCE STATUS: ECOG 1
+
+LABORATÓRIO (05/04/2024):
+- Hemoglobina: 12.3 g/dL
+- Leucócitos: 7.800/mm³
+- Creatinina: 0.9 mg/dL""", language="text")
