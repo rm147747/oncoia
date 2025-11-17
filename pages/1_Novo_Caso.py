@@ -90,155 +90,58 @@ if extract_button:
                 )
                 labs["crcl_ml_min"] = crcl
             
-            # MOSTRAR DADOS EXTRAÍDOS
-            st.subheader("📊 Dados Estruturados")
-            
-            # Demografia
-            with st.expander("👤 Demografia", expanded=True):
-                col1, col2, col3, col4, col5 = st.columns(5)
-                col1.metric("Idade", f"{demo.get('age', 'N/A')} anos" if demo.get('age') else "N/A")
-                col2.metric("Sexo", demo.get('sex', 'N/A'))
-                col3.metric("Peso", f"{demo.get('weight_kg', 'N/A')} kg" if demo.get('weight_kg') else "N/A")
-                col4.metric("Altura", f"{demo.get('height_cm', 'N/A')} cm" if demo.get('height_cm') else "N/A")
-                if demo.get("bsa_m2"):
-                    col5.metric("BSA", f"{demo['bsa_m2']} m²")
-            
-            # Diagnóstico
-            with st.expander("🔬 Diagnóstico", expanded=True):
-                diag = extracted_data.get("diagnosis", {})
-                st.write(f"**Tumor:** {diag.get('primary_tumor', 'N/A')}")
-                st.write(f"**Histologia:** {diag.get('histology', 'N/A')}")
-                
-                tnm = diag.get('stage_tnm', {})
-                if tnm and any(tnm.values()):
-                    col1, col2, col3, col4 = st.columns(4)
-                    col1.metric("T", tnm.get('T', '?'))
-                    col2.metric("N", tnm.get('N', '?'))
-                    col3.metric("M", tnm.get('M', '?'))
-                    col4.metric("Stage", tnm.get('stage_group', '?'))
-            
-            # Biomarcadores
-            biomarkers = extracted_data.get("biomarkers", [])
-            if biomarkers:
-                with st.expander("🧬 Biomarcadores"):
-                    for bm in biomarkers:
-                        st.write(f"• **{bm.get('name')}:** {bm.get('value')}")
-            
-            # Performance Status
-            ps = extracted_data.get("performance_status", {})
-            if ps and ps.get('ecog') is not None:
-                with st.expander("💪 Performance Status"):
-                    st.metric("ECOG", ps.get('ecog'))
-            
-            # Laboratório
-            if labs and any(labs.values()):
-                with st.expander("🧪 Laboratório"):
-                    col1, col2, col3, col4 = st.columns(4)
-                    if labs.get('hemoglobin'):
-                        col1.metric("Hb", f"{labs['hemoglobin']} g/dL")
-                    if labs.get('wbc'):
-                        col2.metric("Leuco", f"{labs['wbc']} /mm³")
-                    if labs.get('creatinine'):
-                        col3.metric("Creat", f"{labs['creatinine']} mg/dL")
-                    if labs.get('crcl_ml_min'):
-                        col4.metric("CrCl", f"{labs['crcl_ml_min']} mL/min")
-            
-            # Confiança
-            st.divider()
-            conf = extracted_data.get("extraction_confidence", 0)
-            if conf >= 80:
-                st.success(f"🎯 Confiança da extração: **{conf}%**")
-            elif conf >= 60:
-                st.warning(f"⚠️ Confiança da extração: **{conf}%**")
-            else:
-                st.error(f"❌ Confiança da extração: **{conf}%** (revisar)")
-            
-            # JSON completo
-            with st.expander("🔍 Ver JSON completo"):
-                st.json(extracted_data)
-            
-            # Salvar em session state
+            # Salvar em session state PRIMEIRO
             st.session_state['extracted_data'] = extracted_data
             st.session_state['prontuario_original'] = prontuario
-            
-            # ==========================================
-            # AQUI VÊM OS DOIS BOTÕES PRINCIPAIS
-            # ==========================================
-            
-            st.divider()
-            st.subheader("🎯 Próxima Etapa: Escolha o Tipo de Análise")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("""
-                <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); 
-                           padding: 1.5rem; border-radius: 10px; color: white; height: 200px;">
-                    <h3>🏥 Tumor Board</h3>
-                    <p><strong>Discussão Clínica Prática</strong></p>
-                    <ul style="font-size: 0.9rem;">
-                        <li>Guidelines (NCCN, ESMO, ASCO)</li>
-                        <li>Tomada de decisão terapêutica</li>
-                        <li>Discussão multidisciplinar</li>
-                        <li>Considerações práticas</li>
-                    </ul>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                if st.button("🏥 Discutir em Tumor Board", 
-                           type="primary", 
-                           use_container_width=True,
-                           key="tumor_board"):
-                    st.session_state['analysis_type'] = 'tumor_board'
-                    st.switch_page("pages/2_Tumor_Board.py")
-            
-            with col2:
-                st.markdown("""
-                <div style="background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%); 
-                           padding: 1.5rem; border-radius: 10px; color: white; height: 200px;">
-                    <h3>🔬 Oncologia Computacional</h3>
-                    <p><strong>Análise Multi-Ômica Profunda</strong></p>
-                    <ul style="font-size: 0.9rem;">
-                        <li>Análise bioinformática avançada</li>
-                        <li>Integração multi-ômica</li>
-                        <li>Hipóteses científicas</li>
-                        <li>Potencial de publicação</li>
-                    </ul>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                if st.button("🔬 Análise Computacional", 
-                           use_container_width=True,
-                           key="comp_onco"):
-                    st.session_state['analysis_type'] = 'computational'
-                    st.switch_page("pages/3_Analise_Computacional.py")
-            
-            st.info("💡 **Dica:** Você pode fazer ambas as análises. Cada uma oferece perspectivas complementares.")
             
         except Exception as e:
             st.error(f"❌ Erro durante extração: {str(e)}")
             with st.expander("Ver detalhes do erro"):
                 st.exception(e)
+            st.stop()
 
-# Exemplo
-st.divider()
-with st.expander("📄 Ver exemplo de prontuário"):
-    st.code("""Paciente feminina, 62 anos, ex-tabagista (40 maços-ano).
-Peso: 68kg, Altura: 165cm.
-
-DIAGNÓSTICO: Adenocarcinoma pulmonar, lobo superior direito
-Data: 15/03/2024
-Estadiamento TNM8: T2bN3M1b (Stage IV)
-
-BIOMARCADORES (01/04/2024):
-- PD-L1 (22C3): TPS 85%
-- EGFR: wild-type
-- ALK: negativo
-- TMB: 12 mut/Mb
-
-PERFORMANCE STATUS: ECOG 1
-
-LABORATÓRIO (05/04/2024):
-- Hemoglobina: 12.3 g/dL
-- Leucócitos: 7.800/mm³
-- Creatinina: 0.9 mg/dL""", language="text")
+# ==========================================
+# MOSTRAR DADOS SE JÁ FORAM EXTRAÍDOS
+# ==========================================
+if 'extracted_data' in st.session_state:
+    extracted_data = st.session_state['extracted_data']
+    demo = extracted_data.get("patient_demographics", {})
+    
+    st.subheader("📊 Dados Estruturados")
+    
+    # Demografia
+    with st.expander("👤 Demografia", expanded=True):
+        col1, col2, col3, col4, col5 = st.columns(5)
+        col1.metric("Idade", f"{demo.get('age', 'N/A')} anos" if demo.get('age') else "N/A")
+        col2.metric("Sexo", demo.get('sex', 'N/A'))
+        col3.metric("Peso", f"{demo.get('weight_kg', 'N/A')} kg" if demo.get('weight_kg') else "N/A")
+        col4.metric("Altura", f"{demo.get('height_cm', 'N/A')} cm" if demo.get('height_cm') else "N/A")
+        if demo.get("bsa_m2"):
+            col5.metric("BSA", f"{demo['bsa_m2']} m²")
+    
+    # Diagnóstico
+    with st.expander("🔬 Diagnóstico", expanded=True):
+        diag = extracted_data.get("diagnosis", {})
+        st.write(f"**Tumor:** {diag.get('primary_tumor', 'N/A')}")
+        st.write(f"**Histologia:** {diag.get('histology', 'N/A')}")
+        
+        tnm = diag.get('stage_tnm', {})
+        if tnm and any(tnm.values()):
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("T", tnm.get('T', '?'))
+            col2.metric("N", tnm.get('N', '?'))
+            col3.metric("M", tnm.get('M', '?'))
+            col4.metric("Stage", tnm.get('stage_group', '?'))
+    
+    # Biomarcadores
+    biomarkers = extracted_data.get("biomarkers", [])
+    if biomarkers:
+        with st.expander("🧬 Biomarcadores"):
+            for bm in biomarkers:
+                st.write(f"• **{bm.get('name')}:** {bm.get('value')}")
+    
+    # Performance Status
+    ps = extracted_data.get("performance_status", {})
+    if ps and ps.get('ecog') is not None:
+        with st.expander("💪 Performance Status"):
+            st.metric("ECOG", ps.get('ecog'))
