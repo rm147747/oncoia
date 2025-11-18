@@ -132,3 +132,93 @@ Retorne APENAS JSON válido."""
         except Exception as e:
             st.error(f"Erro na análise computacional: {e}")
             return None
+            
+def extract_data_with_files(self, prontuario_text, uploaded_files):
+        """
+        Extrai dados estruturados do prontuário texto + arquivos PDF/imagens
+        """
+        import base64
+        
+        # Preparar conteúdo da mensagem
+        message_content = []
+        
+        # Adicionar os arquivos primeiro
+        for file in uploaded_files:
+            file_bytes = file.read()
+            file_base64 = base64.standard_b64encode(file_bytes).decode("utf-8")
+            
+            if file.type == "application/pdf":
+                message_content.append({
+                    "type": "document",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "application/pdf",
+                        "data": file_base64
+                    }
+                })
+            elif file.type.startswith("image/"):
+                message_content.append({
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": file.type,
+                        "data": file_base64
+                    }
+                })
+            
+            # Adicionar contexto sobre o arquivo
+            message_content.append({
+                "type": "text",
+                "text": f"[Arquivo anexado: {file.name}]"
+            })
+        
+        # Adicionar o prontuário texto e instruções
+        message_content.append({
+            "type": "text",
+            "text": f"""Analise TODOS os documentos anexados acima E o prontuário texto abaixo.
+
+PRONTUÁRIO TEXTO:
+{prontuario_text}
+
+---
+
+INSTRUÇÕES:
+1. Extraia dados de TODOS os documentos (PDFs e imagens)
+2. Se encontrar laudos NGS: extraia TODAS mutações, TMB, MSI, PD-L1
+3. Se encontrar germline: extraia variantes patogênicas e VUS
+4. Se encontrar metabolômica: extraia metabólitos alterados
+5. Se encontrar anatomopatológico: extraia IHQ completa (ER, PR, HER2, Ki-67, etc)
+6. Se encontrar labs: extraia todos valores com datas
+7. Consolide com o prontuário texto
+
+Retorne JSON estruturado conforme o schema:
+{DATA_EXTRACTION_SCHEMA}
+"""
+        })
+        
+        # Chamar Claude
+        message = self.client.messages.create(
+            model=self.model,
+            max_tokens=4000,
+            messages=[{
+                "role": "user",
+                "content": message_content
+            }]
+        )
+        
+        # Processar resposta
+        response_text = message.content[0].text
+        
+        # Extrair JSON
+        import re
+        json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+        if json_match:
+            json_str = json_match.group(1)
+        else:
+            json_str = response_text
+        
+        # Parse JSON
+        import json
+        extracted_data = json.loads(json_str)
+        
+        return extracted_data
