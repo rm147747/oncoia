@@ -12,7 +12,7 @@ st.set_page_config(page_title="Novo Caso", page_icon="📋", layout="wide")
 st.title("📋 Novo Caso Clínico")
 st.write("Cole o prontuário completo do paciente")
 
-# ========== NOVO: SEÇÃO DE UPLOAD ==========
+# ========== SEÇÃO DE UPLOAD DE ARQUIVOS ==========
 st.subheader("📎 Anexar Exames (Opcional)")
 st.write("Faça upload de laudos em PDF ou imagens (NGS, germline, metabolômica, anatomopatológico, etc)")
 
@@ -20,7 +20,7 @@ uploaded_files = st.file_uploader(
     "Escolha os arquivos",
     type=["pdf", "png", "jpg", "jpeg"],
     accept_multiple_files=True,
-    help="Aceita: PDF, PNG, JPG"
+    help="Aceita: PDF, PNG, JPG, JPEG"
 )
 
 # Mostrar arquivos anexados
@@ -35,7 +35,7 @@ if uploaded_files:
             col3.write(file.type.split('/')[-1].upper())
 
 st.divider()
-# ========== FIM DA SEÇÃO NOVA ==========
+# ========== FIM DA SEÇÃO DE UPLOAD ==========
 
 # Textarea para prontuário
 prontuario = st.text_area(
@@ -88,7 +88,7 @@ if extract_button:
         try:
             client = ClaudeClient()
             
-            # Se tem arquivos anexados, processar primeiro
+            # Se tem arquivos anexados, processar com eles
             if uploaded_files:
                 st.info(f"📎 Processando {len(uploaded_files)} arquivo(s) anexado(s)...")
                 extracted_data = client.extract_data_with_files(prontuario, uploaded_files)
@@ -121,46 +121,16 @@ if extract_button:
                 labs["crcl_ml_min"] = crcl
             
             # Salvar em session state
-st.session_state['extracted_data'] = extracted_data
-st.session_state['prontuario_original'] = prontuario
-
-# Salvar lista de arquivos anexados (para referência)
-if uploaded_files:
-    st.session_state['uploaded_files_names'] = [f.name for f in uploaded_files]
-else:
-    st.session_state['uploaded_files_names'] = []
-
-st.rerun()
-```
-
----
-
-## ✅ CHECKLIST DE IMPLEMENTAÇÃO:
-
-- [ ] **1.** Abrir `pages/1_Novo_Caso.py`
-- [ ] **2.** Adicionar seção de upload (após `st.title`)
-- [ ] **3.** Modificar lógica do botão "Extrair Dados"
-- [ ] **4.** Abrir `utils/anthropic_client.py`
-- [ ] **5.** Adicionar função `extract_data_with_files` no final
-- [ ] **6.** Salvar tudo
-- [ ] **7.** Commit e push pro GitHub
-- [ ] **8.** Testar fazendo upload de um PDF
-
----
-
-## 🎯 RESULTADO FINAL:
-
-**ANTES:**
-```
-[Campo de texto para colar prontuário]
-[Botão: Extrair Dados]
-```
-
-**DEPOIS:**
-```
-[📎 Seção para anexar PDFs/imagens]
-[Campo de texto para colar prontuário]
-[Botão: Extrair Dados] ← agora processa arquivos também!
+            st.session_state['extracted_data'] = extracted_data
+            st.session_state['prontuario_original'] = prontuario
+            
+            # Salvar nomes dos arquivos anexados
+            if uploaded_files:
+                st.session_state['uploaded_files_names'] = [f.name for f in uploaded_files]
+            else:
+                st.session_state['uploaded_files_names'] = []
+            
+            st.rerun()
             
         except Exception as e:
             st.error(f"❌ Erro durante extração: {str(e)}")
@@ -175,6 +145,10 @@ if 'extracted_data' in st.session_state:
     demo = extracted_data.get("patient_demographics", {})
     
     st.success("✅ Dados extraídos com sucesso!")
+    
+    # Mostrar arquivos processados (se houver)
+    if st.session_state.get('uploaded_files_names'):
+        st.info(f"📎 Arquivos processados: {', '.join(st.session_state['uploaded_files_names'])}")
     
     st.subheader("📊 Dados Estruturados")
     
@@ -300,6 +274,8 @@ if 'extracted_data' in st.session_state:
     if st.button("🆕 Analisar Novo Caso"):
         del st.session_state['extracted_data']
         del st.session_state['prontuario_original']
+        if 'uploaded_files_names' in st.session_state:
+            del st.session_state['uploaded_files_names']
         st.rerun()
 
 # Exemplo
