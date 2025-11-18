@@ -124,18 +124,12 @@ if 'tumor_board_result' in st.session_state:
     
     st.divider()
     
-    # Exibir a discussão
-    st.markdown("### 📝 Discussão Clínica")
-    
-    # Mostrar o resultado em uma caixa estilizada
-    st.markdown(f"""
-    <div class="discussion-section">
-        {st.session_state['tumor_board_result'].replace(chr(10), '<br>')}
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Também mostrar em markdown nativo para melhor formatação
-    st.markdown(st.session_state['tumor_board_result'])
+   # Exibir a discussão
+st.markdown("### 📝 Discussão Clínica")
+st.divider()
+
+# Mostrar o resultado com markdown processado
+st.markdown(st.session_state['tumor_board_result'])
     
     # Opção de download
     st.divider()
