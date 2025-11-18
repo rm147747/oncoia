@@ -12,6 +12,31 @@ st.set_page_config(page_title="Novo Caso", page_icon="📋", layout="wide")
 st.title("📋 Novo Caso Clínico")
 st.write("Cole o prontuário completo do paciente")
 
+# ========== NOVO: SEÇÃO DE UPLOAD ==========
+st.subheader("📎 Anexar Exames (Opcional)")
+st.write("Faça upload de laudos em PDF ou imagens (NGS, germline, metabolômica, anatomopatológico, etc)")
+
+uploaded_files = st.file_uploader(
+    "Escolha os arquivos",
+    type=["pdf", "png", "jpg", "jpeg"],
+    accept_multiple_files=True,
+    help="Aceita: PDF, PNG, JPG"
+)
+
+# Mostrar arquivos anexados
+if uploaded_files:
+    st.success(f"✅ {len(uploaded_files)} arquivo(s) anexado(s)")
+    
+    with st.expander("📋 Ver arquivos anexados"):
+        for file in uploaded_files:
+            col1, col2, col3 = st.columns([3, 1, 1])
+            col1.write(f"📄 {file.name}")
+            col2.write(f"{file.size/1024:.1f} KB")
+            col3.write(file.type.split('/')[-1].upper())
+
+st.divider()
+# ========== FIM DA SEÇÃO NOVA ==========
+
 # Textarea para prontuário
 prontuario = st.text_area(
     "Prontuário Clínico",
