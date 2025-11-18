@@ -84,10 +84,17 @@ with col2:
 
 # EXTRAÇÃO DOS DADOS
 if extract_button:
-    with st.spinner("🤖 Extraindo dados estruturados... (~30s)"):
+    with st.spinner("🤖 Extraindo dados estruturados... (~30-60s)"):
         try:
             client = ClaudeClient()
-            extracted_data = client.extract_data(prontuario)
+            
+            # Se tem arquivos anexados, processar primeiro
+            if uploaded_files:
+                st.info(f"📎 Processando {len(uploaded_files)} arquivo(s) anexado(s)...")
+                extracted_data = client.extract_data_with_files(prontuario, uploaded_files)
+            else:
+                # Extração normal só com texto
+                extracted_data = client.extract_data(prontuario)
             
             if not extracted_data:
                 st.error("❌ Falha na extração. Tente novamente.")
