@@ -121,9 +121,46 @@ if extract_button:
                 labs["crcl_ml_min"] = crcl
             
             # Salvar em session state
-            st.session_state['extracted_data'] = extracted_data
-            st.session_state['prontuario_original'] = prontuario
-            st.rerun()
+st.session_state['extracted_data'] = extracted_data
+st.session_state['prontuario_original'] = prontuario
+
+# Salvar lista de arquivos anexados (para referência)
+if uploaded_files:
+    st.session_state['uploaded_files_names'] = [f.name for f in uploaded_files]
+else:
+    st.session_state['uploaded_files_names'] = []
+
+st.rerun()
+```
+
+---
+
+## ✅ CHECKLIST DE IMPLEMENTAÇÃO:
+
+- [ ] **1.** Abrir `pages/1_Novo_Caso.py`
+- [ ] **2.** Adicionar seção de upload (após `st.title`)
+- [ ] **3.** Modificar lógica do botão "Extrair Dados"
+- [ ] **4.** Abrir `utils/anthropic_client.py`
+- [ ] **5.** Adicionar função `extract_data_with_files` no final
+- [ ] **6.** Salvar tudo
+- [ ] **7.** Commit e push pro GitHub
+- [ ] **8.** Testar fazendo upload de um PDF
+
+---
+
+## 🎯 RESULTADO FINAL:
+
+**ANTES:**
+```
+[Campo de texto para colar prontuário]
+[Botão: Extrair Dados]
+```
+
+**DEPOIS:**
+```
+[📎 Seção para anexar PDFs/imagens]
+[Campo de texto para colar prontuário]
+[Botão: Extrair Dados] ← agora processa arquivos também!
             
         except Exception as e:
             st.error(f"❌ Erro durante extração: {str(e)}")
