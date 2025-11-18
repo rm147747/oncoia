@@ -50,12 +50,12 @@ if 'extracted_data' not in st.session_state or 'prontuario_original' not in st.s
 # Dados do caso
 extracted_data = st.session_state['extracted_data']
 prontuario = st.session_state['prontuario_original']
+demo = extracted_data.get("patient_demographics", {})
 
 # Mostrar resumo do caso
 with st.expander("📋 Resumo do Caso", expanded=False):
     col1, col2, col3, col4 = st.columns(4)
     
-    demo = extracted_data.get("patient_demographics", {})
     diag = extracted_data.get("diagnosis", {})
     
     with col1:
@@ -124,12 +124,12 @@ if 'tumor_board_result' in st.session_state:
     
     st.divider()
     
-   # Exibir a discussão
-st.markdown("### 📝 Discussão Clínica")
-st.divider()
-
-# Mostrar o resultado com markdown processado
-st.markdown(st.session_state['tumor_board_result'])
+    # Exibir a discussão
+    st.markdown("### 📝 Discussão Clínica")
+    st.divider()
+    
+    # Mostrar o resultado com markdown processado
+    st.markdown(st.session_state['tumor_board_result'])
     
     # Opção de download
     st.divider()
